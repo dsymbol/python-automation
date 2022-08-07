@@ -4,27 +4,26 @@ BASE_URI = "https://parabank.parasoft.com/parabank/index.htm"
 
 
 @pytest.fixture
-def driver(_driver):
-    _driver.get(BASE_URI)
-    _driver.wait = 10
-    return _driver
+def driver(ui_driver):
+    ui_driver.get(BASE_URI)
+    ui_driver.wait = 10
+    return ui_driver
 
 
 def test_signup_signin(driver, person):
     # sign up
-
     driver.xpath_element('//a[contains(@href, "register.htm")]').click()
-    driver.css_element('*[id="customer.firstName"]').send_keys(person["first_name"])
-    driver.css_element('*[id="customer.lastName"]').send_keys(person["last_name"])
-    driver.css_element('*[id="customer.address.street"]').send_keys(person["address"])
-    driver.css_element('*[id="customer.address.city"]').send_keys(person["city"])
-    driver.css_element('*[id="customer.address.state"]').send_keys(person["state"])
-    driver.css_element('*[id="customer.address.zipCode"]').send_keys(person["zipcode"])
-    driver.css_element('*[id="customer.phoneNumber"]').send_keys(person["phone"])
-    driver.css_element('*[id="customer.ssn"]').send_keys(person["ssn"])
-    driver.css_element('*[id="customer.username"]').send_keys(person["username"])
-    driver.css_element('*[id="customer.password"]').send_keys(person["password"])
-    driver.css_element('*[id="repeatedPassword"]').send_keys(person["password"])
+    driver.css_element('#customer\.firstName').send_keys(person["first_name"])
+    driver.css_element('#customer\.lastName').send_keys(person["last_name"])
+    driver.css_element('#customer\.address\.street').send_keys(person["address"])
+    driver.css_element('#customer\.address\.city').send_keys(person["city"])
+    driver.css_element('#customer\.address\.state').send_keys(person["state"])
+    driver.css_element('#customer\.address\.zipCode').send_keys(person["zipcode"])
+    driver.css_element('#customer\.phoneNumber').send_keys(person["phone"])
+    driver.css_element('#customer\.ssn').send_keys(person["ssn"])
+    driver.css_element('#customer\.username').send_keys(person["username"])
+    driver.css_element('#customer\.password').send_keys(person["password"])
+    driver.css_element('#repeatedPassword').send_keys(person["password"])
     driver.xpath_element('//input[@value="Register"]').click()
     fullname = driver.xpath_element('//div[@id="leftPanel"] //p').text
     assert f'{person["first_name"]} {person["last_name"]}' in fullname
@@ -39,7 +38,7 @@ def test_signup_signin(driver, person):
     driver.xpath_element('//form[contains(@action,"login.htm")] //input[@name="password"]').send_keys(
         person["password"])
     driver.xpath_element('//form[contains(@action,"login.htm")] //input[@type="submit"]').submit()
-    driver.wait_element_visibility(driver.css_element('div[id=rightPanel]'))
+    driver.wait_for.element_visibility('div[id=rightPanel]')
     account_id = driver.xpath_element('//a[contains(@href,"activity.htm")]').text
     assert account_id.isnumeric()
     balance = driver.xpath_element(
@@ -84,10 +83,10 @@ def test_locations_buttons_redirect(driver):
 
 def test_contact_us_form(driver, person):
     driver.xpath_element('//a[contains(@href,"contact.htm")]').click()
-    driver.css_element("*[id=name]").send_keys(person["first_name"])
-    driver.css_element("*[id=email]").send_keys(person["email_address"])
-    driver.css_element("*[id=phone]").send_keys(person["phone"])
-    driver.css_element("*[id=message]").send_keys("Testing contact us page :)")
+    driver.css_element("#name").send_keys(person["first_name"])
+    driver.css_element("#email").send_keys(person["email_address"])
+    driver.css_element("#phone").send_keys(person["phone"])
+    driver.css_element("#message").send_keys("Testing contact us page :)")
     driver.xpath_element("//table //input[not(@id)]").click()
     finish_screen = driver.xpath_elements('//div[@id="rightPanel"] //p')
     assert person["first_name"] in finish_screen[0].text

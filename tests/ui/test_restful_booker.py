@@ -4,10 +4,10 @@ BASE_URI = "https://automationintesting.online"
 
 
 @pytest.fixture
-def driver(_driver):
-    _driver.get(BASE_URI)
-    _driver.wait = 10
-    return _driver
+def driver(ui_driver):
+    ui_driver.get(BASE_URI)
+    ui_driver.wait = 10
+    return ui_driver
 
 
 def test_hotel(driver):
@@ -126,19 +126,3 @@ def test_admin_panel(driver):
     assert contact_details[1].text == new_addy
     assert int(contact_details[2].text) == new_phone
     assert contact_details[3].text == new_email
-
-
-# failing test needs fixing on site end
-def test_book_room(driver, person):
-    driver.xpath_element('//div[contains(@class, "hotel-room-info")] //button').click()
-    driver.xpath_element('//div[contains(@class, "hotel-room-info")] //input[@name="firstname"]').send_keys(
-        person["first_name"])
-    driver.xpath_element('//div[contains(@class, "hotel-room-info")] //input[@name="lastname"]').send_keys(
-        person["last_name"])
-    driver.xpath_element('//div[contains(@class, "hotel-room-info")] //input[@name="email"]').send_keys(
-        person["email_address"])
-    driver.xpath_element('//div[contains(@class, "hotel-room-info")] //input[@name="phone"]').send_keys(
-        f'1{person["phone"]}')
-    driver.xpath_element('//div[contains(@class, "hotel-room-info")] //button[contains(@class,"book-room") '
-                         'and not(contains(@class,"danger"))]').click()
-    # assert not driver.css_element('div.alert')

@@ -1,11 +1,11 @@
 import pytest
 from selench import Selench
 
-from utils.data_generator import person_generator
+from utils.helpers import random_person
 
 
 @pytest.fixture
-def _driver():
+def ui_driver():
     driver = Selench(wait=5)
     yield driver
     driver.quit()
@@ -13,7 +13,7 @@ def _driver():
 
 @pytest.fixture
 def person():
-    return person_generator()
+    return random_person()
 
 
 @pytest.fixture

@@ -1,19 +1,20 @@
 import pytest
+from selenium.common import TimeoutException
 from selenium.webdriver import Keys
 
 BASE_URI = "https://www.amazon.com/"
 
 
 @pytest.fixture
-def driver(_driver):
-    _driver.get(BASE_URI)
-    if _driver.xpath_elements('//input[@data-action-type="DISMISS"]'):
-        _driver.xpath_element('//input[@data-action-type="DISMISS"]').click()
-    while True:
-        if _driver.css_elements('*[id=twotabsearchtextbox]'):
-            break
-        _driver.refresh()
-    return _driver
+def driver(ui_driver):
+    ui_driver.get(BASE_URI)
+    if ui_driver.xpath_elements('//input[@data-action-type="DISMISS"]'):
+        ui_driver.xpath_element('//input[@data-action-type="DISMISS"]').click()
+    try:
+        ui_driver.wait_for.element_visibility('#twotabsearchtextbox')
+    except TimeoutException:
+        ui_driver.refresh()
+    return ui_driver
 
 
 phrases = [("ram"), ("Raspberry Pi"), ("CPU")]
@@ -22,9 +23,9 @@ phrases = [("ram"), ("Raspberry Pi"), ("CPU")]
 @pytest.mark.parametrize('phrase', phrases)
 def test_search_query(driver, phrase):
     # Search element
-    driver.css_element("*[id=twotabsearchtextbox]").send_keys(phrase)
+    driver.css_element("#twotabsearchtextbox").send_keys(phrase)
     # Submit search element
-    driver.css_element("*[id=nav-search-submit-button]").submit()
+    driver.css_element("#nav-search-submit-button").submit()
     prices = driver.xpath_elements(
         '//div[contains(@class, "s-result-item s-asin") and not(contains(@class, '
         '"AdHolder"))] //span[@class="a-price-whole"]')
@@ -38,30 +39,27 @@ def test_search_query(driver, phrase):
 
 def test_today_deals(driver):
     # Today's deals button on frontpage
-    driver.xpath_element(
-        '//div[@id="nav-xshop"] /a[@data-csa-c-slot-id="nav_cs_0"]').click()
+    driver.xpath_element('//div[@id="nav-xshop"] /a[@data-csa-c-slot-id="nav_cs_0"]').click()
     assert "goldbox" in driver.url
     # The deals in percent or dollars off (red box)
     deals = driver.xpath_elements(
         '//div[@class="BadgeAutomated-module__badgeOneLineContainer_yYupgq1lKxb5h3bfDqA-B"] '
-        '//div['
-        '@class="BadgeAutomatedLabel-module__badgeAutomatedLabel_2Teem9LTaUlj6gBh5R45wd"]')
+        '//div[@class="BadgeAutomatedLabel-module__badgeAutomatedLabel_2Teem9LTaUlj6gBh5R45wd"]')
     for deal in deals:
         assert "$" or "%" in deal.text
     assert "deals" in driver.title.lower()
 
 
 def test_invalid_email_signin(driver):
-    driver.css_element("*[id=nav-link-accountList]").click()
-    driver.css_element("*[id=ap_email]").send_keys("test2022auth@email.com")
-    driver.css_element("*[id=continue-announce]").submit()
-    error_message = driver.css_element("*[class=a-alert-heading]")
+    driver.css_element("#nav-link-accountList").click()
+    driver.css_element("#ap_email").send_keys("test2022auth@email.com")
+    driver.css_element("#continue-announce").submit()
+    error_message = driver.css_element(".a-alert-heading")
     assert error_message.text == "There was a problem"
 
 
 def test_customer_service(driver):
-    driver.xpath_element(
-        '//div[@id="nav-xshop"] /a[@data-csa-c-slot-id="nav_cs_1"]').click()
+    driver.xpath_element('//div[@id="nav-xshop"] /a[@data-csa-c-slot-id="nav_cs_1"]').click()
     driver.xpath_element('//input[@id="helpsearch" or @id="hubHelpSearchInput"]').send_keys("refund", Keys.ENTER)
     answer = driver.xpath_element('//div[contains(@class,"answer-box-t1")] //h2')
     assert "refund" in answer.text.lower()
@@ -69,12 +67,11 @@ def test_customer_service(driver):
 
 def test_cart(driver):
     # Search element
-    driver.css_element("*[id=twotabsearchtextbox]").send_keys("gpu")
+    driver.css_element("#twotabsearchtextbox").send_keys("gpu")
     # Submit search element
-    driver.css_element("*[id=nav-search-submit-button]").submit()
+    driver.css_element("#nav-search-submit-button").submit()
     product = driver.xpath_element('(//div[contains(@class, "s-result-item s-asin") and not(contains(@class, '
-                                   '"AdHolder"))] '
-                                   '//span[contains(@class,"a-size-medium")])[1]')
+                                   '"AdHolder"))] //span[contains(@class,"a-size-medium")])[1]')
     p_text = product.text
     product.click()
     driver.css_element('*[id=add-to-cart-button]').click()
