@@ -9,7 +9,7 @@ from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
 
-from utils.helpers import Appium_Helper
+from helper import AppiumHelper
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def driver():
         "appium:deviceName": "Android Emulator",
         "appium:app": os.path.abspath("NewPipe_v0.23.1.apk")
     }
-    driver = Appium_Helper("http://127.0.0.1:4723/wd/hub", desired_caps)
+    driver = AppiumHelper("http://127.0.0.1:4723/wd/hub", desired_caps)
     driver.wait.until(EC.visibility_of_element_located((AppiumBy.ID, 'org.schabi.newpipe:id/itemRoot')))
     yield driver
     driver.quit()

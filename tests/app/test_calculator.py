@@ -4,7 +4,7 @@ Google AOSP Calculator
 
 import pytest
 
-from utils.helpers import Appium_Helper
+from helper import AppiumHelper
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def driver():
         "appium:appActivity": "com.android.calculator2.Calculator",
         "appium:appPackage": "com.android.calculator2"
     }
-    driver = Appium_Helper("http://127.0.0.1:4723/wd/hub", desired_caps)
+    driver = AppiumHelper("http://127.0.0.1:4723/wd/hub", desired_caps)
     yield driver
     driver.quit()
 
