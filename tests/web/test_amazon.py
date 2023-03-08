@@ -51,7 +51,7 @@ def test_search_autocomplete_suggestions(driver):
 
 def test_search_filters(driver):
     driver.element('input[name="field-keywords"]').send_keys('cpu', Keys.ENTER)
-    # # price filtering
+    # price filtering
     driver.elements('#priceRefinements ul li a')[1].click()
     prices = driver.elements('.a-price-whole')
     for price in prices:
@@ -62,3 +62,19 @@ def test_search_filters(driver):
     reviews = [''.join(filter(str.isdigit, s)) for s in reviews]
     for review in reviews:
         assert int(review) in [4, 45, 5]
+
+
+# Negative
+products = [('Sunglases', 'sunglasses'), ('Furnitue', 'furniture'), ('Aplle', 'apple')]
+
+
+@pytest.mark.parametrize('misspelled, spelled', products)
+def test_search_for_misspelled_product(driver, misspelled, spelled):
+    driver.element('input[name="field-keywords"]').send_keys(misspelled, Keys.ENTER)
+    titles = [i.text for i in driver.elements('.s-card-container span.a-text-normal')]
+    assert "\n".join(titles).lower().count(spelled) > 10
+
+
+def test_search_out_of_stock_product(driver):
+    driver.element('input[name="field-keywords"]').send_keys('airtag', Keys.ENTER)
+    assert not driver.elements('[data-cel-widget="search_result_1"] .a-price-whole')
