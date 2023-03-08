@@ -132,3 +132,4 @@ dmypy.json
 .idea/
 
 test.py
+geckodriver.log
