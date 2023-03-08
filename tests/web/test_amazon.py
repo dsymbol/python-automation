@@ -1,81 +1,64 @@
 import pytest
-from selenium.common import TimeoutException
 from selenium.webdriver import Keys
-
-BASE_URI = "https://www.amazon.com/"
 
 
 @pytest.fixture
 def driver(ui_driver):
-    ui_driver.get(BASE_URI)
-    if ui_driver.xpath_elements('//input[@data-action-type="DISMISS"]'):
-        ui_driver.xpath_element('//input[@data-action-type="DISMISS"]').click()
-    try:
-        ui_driver.wait_for.element_visibility('#twotabsearchtextbox')
-    except TimeoutException:
+    ui_driver.get("https://amazon.com")
+    if not ui_driver.elements('#twotabsearchtextbox'):
         ui_driver.refresh()
     return ui_driver
 
 
-phrases = [("ram"), ("Raspberry Pi"), ("CPU")]
+products = ['raspberry pi', 'iphone', 'jbl flip']
 
 
-@pytest.mark.parametrize('phrase', phrases)
-def test_search_query(driver, phrase):
-    # Search element
-    driver.css_element("#twotabsearchtextbox").send_keys(phrase)
-    # Submit search element
-    driver.css_element("#nav-search-submit-button").submit()
-    prices = driver.xpath_elements(
-        '//div[contains(@class, "s-result-item s-asin") and not(contains(@class, '
-        '"AdHolder"))] //span[@class="a-price-whole"]')
+@pytest.mark.parametrize('product', products)
+def test_search_product(driver, product):
+    driver.get("https://amazon.com")
+    driver.element('input[name="field-keywords"]').send_keys(product, Keys.ENTER)
+    titles = driver.elements('.s-card-container span.a-text-normal')
+    relevant = [product in title.text.lower() for title in titles]
+    assert relevant.count(True) >= len(relevant) * 0.5
+
+
+def test_search_product_by_category(driver, product="raspberry"):
+    driver.get("https://amazon.com")
+    # all categories
+    driver.element('input[name="field-keywords"]').send_keys(product, Keys.ENTER)
+    titles = driver.elements('.s-card-container span.a-text-normal')
+    relevant = ["raspberry pi" in title.text.lower() for title in titles]
+    assert relevant.count(True) < len(relevant) * 0.8
+    # category filtering
+    select = driver.select_element(driver.element('select[class*=search]'))
+    select.select_by_visible_text('Electronics')
+    driver.element('input[name="field-keywords"]').send_keys(Keys.ENTER)
+    titles = driver.elements('.s-card-container span.a-text-normal')
+    relevant = ["raspberry pi" in title.text.lower() for title in titles]
+    assert relevant.count(True) >= len(relevant) * 0.8
+
+
+def test_search_autocomplete_suggestions(driver):
+    search = driver.element('input[name="field-keywords"]')
+
+    for product in products:
+        search.send_keys(product)
+        driver.wait_for.element_attribute_text_to_include('#issprefix', 'value', product)
+        suggestions = [i.get_attribute('aria-label') for i in driver.elements('.s-suggestion-ellipsis-direction')]
+        assert all(suggestion.startswith(product) for suggestion in suggestions)
+        search.clear()
+
+
+def test_search_filters(driver):
+    driver.element('input[name="field-keywords"]').send_keys('cpu', Keys.ENTER)
+    # # price filtering
+    driver.elements('#priceRefinements ul li a')[1].click()
+    prices = driver.elements('.a-price-whole')
     for price in prices:
-        assert int(price.text) > 0
-
-    assert phrase in driver.title
-    search_query = driver.xpath_element('//span[@class="a-color-state a-text-bold"]').text
-    assert search_query == f'"{phrase}"'
-
-
-def test_today_deals(driver):
-    # Today's deals button on frontpage
-    driver.xpath_element('//div[@id="nav-xshop"] /a[@data-csa-c-slot-id="nav_cs_0"]').click()
-    assert "goldbox" in driver.url
-    # The deals in percent or dollars off (red box)
-    deals = driver.xpath_elements(
-        '//div[@class="BadgeAutomated-module__badgeOneLineContainer_yYupgq1lKxb5h3bfDqA-B"] '
-        '//div[@class="BadgeAutomatedLabel-module__badgeAutomatedLabel_2Teem9LTaUlj6gBh5R45wd"]')
-    for deal in deals:
-        assert "$" or "%" in deal.text
-    assert "deals" in driver.title.lower()
-
-
-def test_invalid_email_signin(driver):
-    driver.css_element("#nav-link-accountList").click()
-    driver.css_element("#ap_email").send_keys("test2022auth@email.com")
-    driver.css_element("#continue-announce").submit()
-    error_message = driver.css_element(".a-alert-heading")
-    assert error_message.text == "There was a problem"
-
-
-def test_customer_service(driver):
-    driver.xpath_element('//div[@id="nav-xshop"] /a[@data-csa-c-slot-id="nav_cs_1"]').click()
-    driver.xpath_element('//input[@id="helpsearch" or @id="hubHelpSearchInput"]').send_keys("refund", Keys.ENTER)
-    answer = driver.xpath_element('//div[contains(@class,"answer-box-t1")] //h2')
-    assert "refund" in answer.text.lower()
-
-
-def test_cart(driver):
-    # Search element
-    driver.css_element("#twotabsearchtextbox").send_keys("gpu")
-    # Submit search element
-    driver.css_element("#nav-search-submit-button").submit()
-    product = driver.xpath_element('(//div[contains(@class, "s-result-item s-asin") and not(contains(@class, '
-                                   '"AdHolder"))] //span[contains(@class,"a-size-medium")])[1]')
-    p_text = product.text
-    product.click()
-    driver.css_element('*[id=add-to-cart-button]').click()
-    driver.xpath_element('//span[@id="sw-gtc"] /span').click()
-    cart_product = driver.css_element("*[class=a-truncate-cut]")
-    # Compare first 3 words of product added to cart and product in cart
-    assert p_text.split(" ")[:3] == cart_product.text.split(" ")[:3]
+        assert 25 <= int(price.text) <= 50
+    # customer reviews
+    driver.elements('#reviewsRefinements ul li a')[0].click()
+    reviews = [i.get_attribute('class') for i in driver.elements('.s-card-container i[class*=a-icon-star]')]
+    reviews = [''.join(filter(str.isdigit, s)) for s in reviews]
+    for review in reviews:
+        assert int(review) in [4, 45, 5]
