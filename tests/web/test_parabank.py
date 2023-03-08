@@ -29,7 +29,7 @@ def test_signup_signin(driver, person):
     assert f'{person["first_name"]} {person["last_name"]}' in fullname
 
     # clear cookies before sign in
-    driver.delete_cookies()
+    driver.delete_all_cookies()
     driver.get(BASE_URI)
 
     # sign in
