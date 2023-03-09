@@ -1,6 +1,4 @@
-import string
-from random import choice
-
+from dataclasses import dataclass
 import pytest
 from selench import Selench
 
@@ -14,22 +12,22 @@ def ui_driver():
 
 @pytest.fixture
 def person():
-    generate_str = lambda x: "".join(
-        [choice(choice([string.ascii_lowercase, string.ascii_uppercase, string.digits])) for _ in range(x)])
+    return Person("homer123")
 
-    _person = {
-        "first_name": "David",
-        "last_name": "Freitas",
-        "address": "4436 Rhode Island Avenue",
-        "city": "Washington",
-        "state": "DC",
-        "zipcode": 20036,
-        "sex": "male",
-        "phone": "202-331-1309",
-        "email_address": "DavidMFreitas@armyspy.com",
-        "ssn": "579-62-3889",
-        "birthday": "September 2, 1941",
-        "age": 80,
-        "username": generate_str(8),
-        "password": generate_str(12)}
-    return _person
+
+@dataclass
+class Person:
+    username: str
+    first_name: str = "Homer"
+    last_name: str = "Simpson"
+    address: str = "742 Evergreen Terrace"
+    city: str = "Springfield"
+    state: str = "Unknown"
+    zipcode: int = 00000
+    sex: str = "Male"
+    phone: str = "555-555-5555"
+    email: str = "homer@simpson.com"
+    ssn: str = "123-45-6789"
+    birthday: str = "May 12, 1956"
+    age: int = 66
+    password: str = "doh123"
