@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+
 import pytest
+from playwright.sync_api import sync_playwright
 from selench import Selench
 
 
@@ -8,6 +10,17 @@ def ui_driver():
     driver = Selench(wait=5)
     yield driver
     driver.quit()
+
+
+@pytest.fixture
+def ui_page():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
+        yield page
+        context.close()
+        browser.close()
 
 
 @pytest.fixture
