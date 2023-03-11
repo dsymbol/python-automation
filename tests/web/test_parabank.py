@@ -44,7 +44,6 @@ def test_log_in_with_valid_credentials(logged_in_parabank, person):
 
 
 def test_login_persistence(logged_in_parabank, person):
-    test_log_in_with_valid_credentials(logged_in_parabank, person)
     logged_in_parabank.element('a[href*=transfer]').click()
     assert logged_in_parabank.elements('a[href*=logout]')
     logged_in_parabank.element('img[src*=logo]').click()
