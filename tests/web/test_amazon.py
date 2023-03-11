@@ -64,14 +64,14 @@ def test_search_filters(amazon_driver):
         assert int(review) in [4, 45, 5]
 
 
-products = [('Sunglases', 'sunglasses'), ('Furnitue', 'furniture'), ('Aplle', 'apple')]
+ms_products = [('Sunglases', 'sunglasses'), ('Furnitue', 'furniture'), ('Aplle', 'apple')]
 
 
-@pytest.mark.parametrize('misspelled, spelled', products)
-def test_search_for_misspelled_product(amazon_driver, misspelled, spelled):
-    amazon_driver.element('input[name="field-keywords"]').send_keys(misspelled, Keys.ENTER)
+@pytest.mark.parametrize('incorrect, correct', ms_products)
+def test_search_for_misspelled_product(amazon_driver, incorrect, correct):
+    amazon_driver.element('input[name="field-keywords"]').send_keys(incorrect, Keys.ENTER)
     titles = [i.text for i in amazon_driver.elements('.s-card-container span.a-text-normal')]
-    assert "\n".join(titles).lower().count(spelled) > 10
+    assert "\n".join(titles).lower().count(correct) > 10
 
 
 def test_search_out_of_stock_product(amazon_driver):
