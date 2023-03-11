@@ -30,7 +30,7 @@ def test_search_product_by_category(amazon_driver, product="raspberry"):
     relevant = ["raspberry pi" in title.text.lower() for title in titles]
     assert relevant.count(True) < len(relevant) * 0.8
     # category filtering
-    select = amazon_driver.select_element(amazon_driver.element('select[class*=search]'))
+    select = amazon_driver.select_element('select[class*=search]')
     select.select_by_visible_text('Electronics')
     amazon_driver.element('input[name="field-keywords"]').send_keys(Keys.ENTER)
     titles = amazon_driver.elements('.s-card-container span.a-text-normal')

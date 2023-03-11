@@ -25,8 +25,8 @@ def test_admin_panel_login(logged_in_restful_booker):
 def test_create_room_with_valid_information(logged_in_restful_booker):
     name, type_, price, features = 102, "Double", 200, ["Refreshments", "Radio"]
     logged_in_restful_booker.element('#roomName').send_keys(name)
-    logged_in_restful_booker.select_element(logged_in_restful_booker.element('#accessible')).select_by_value('true')
-    logged_in_restful_booker.select_element(logged_in_restful_booker.element('#type')).select_by_value(type_)
+    logged_in_restful_booker.select_element('#accessible').select_by_value('true')
+    logged_in_restful_booker.select_element('#type').select_by_value(type_)
     logged_in_restful_booker.element('#roomPrice').send_keys(price)
 
     for feature in features:
@@ -45,8 +45,8 @@ def test_create_room_with_valid_information(logged_in_restful_booker):
 
 def test_create_room_with_incomplete_information(logged_in_restful_booker):
     logged_in_restful_booker.element('#roomName').send_keys(105)
-    logged_in_restful_booker.select_element(logged_in_restful_booker.element('#accessible')).select_by_value('true')
-    logged_in_restful_booker.select_element(logged_in_restful_booker.element('#type')).select_by_value('Double')
+    logged_in_restful_booker.select_element('#accessible').select_by_value('true')
+    logged_in_restful_booker.select_element('#type').select_by_value('Double')
     logged_in_restful_booker.element('#createRoom').click()
     assert logged_in_restful_booker.elements('.alert-danger')
 
@@ -54,8 +54,8 @@ def test_create_room_with_incomplete_information(logged_in_restful_booker):
 def test_cancel_room_booking(logged_in_restful_booker):
     name = 120
     logged_in_restful_booker.element('#roomName').send_keys(name)
-    logged_in_restful_booker.select_element(logged_in_restful_booker.element('#accessible')).select_by_value('true')
-    logged_in_restful_booker.select_element(logged_in_restful_booker.element('#type')).select_by_value('Family')
+    logged_in_restful_booker.select_element('#accessible').select_by_value('true')
+    logged_in_restful_booker.select_element('#type').select_by_value('Family')
     logged_in_restful_booker.element('#roomPrice').send_keys(500)
     logged_in_restful_booker.element('#createRoom').click()
     logged_in_restful_booker.element(f'//p[@id="roomName{name}"] /../.. //span[contains(@class, "roomDelete")]').click()
