@@ -3,78 +3,77 @@ from selenium.webdriver import Keys
 
 
 @pytest.fixture
-def driver(ui_driver):
-    ui_driver.get("https://amazon.com")
-    if not ui_driver.elements('#twotabsearchtextbox'):
-        ui_driver.refresh()
-    return ui_driver
+def amazon_driver(driver):
+    driver.get("https://amazon.com")
+    if not driver.elements('#twotabsearchtextbox'):
+        driver.refresh()
+    return driver
 
 
 products = ['raspberry pi', 'iphone', 'jbl flip']
 
 
 @pytest.mark.parametrize('product', products)
-def test_search_product(driver, product):
-    driver.get("https://amazon.com")
-    driver.element('input[name="field-keywords"]').send_keys(product, Keys.ENTER)
-    titles = driver.elements('.s-card-container span.a-text-normal')
+def test_search_product(amazon_driver, product):
+    amazon_driver.get("https://amazon.com")
+    amazon_driver.element('input[name="field-keywords"]').send_keys(product, Keys.ENTER)
+    titles = amazon_driver.elements('.s-card-container span.a-text-normal')
     relevant = [product in title.text.lower() for title in titles]
     assert relevant.count(True) >= len(relevant) * 0.5
 
 
-def test_search_product_by_category(driver, product="raspberry"):
-    driver.get("https://amazon.com")
+def test_search_product_by_category(amazon_driver, product="raspberry"):
+    amazon_driver.get("https://amazon.com")
     # all categories
-    driver.element('input[name="field-keywords"]').send_keys(product, Keys.ENTER)
-    titles = driver.elements('.s-card-container span.a-text-normal')
+    amazon_driver.element('input[name="field-keywords"]').send_keys(product, Keys.ENTER)
+    titles = amazon_driver.elements('.s-card-container span.a-text-normal')
     relevant = ["raspberry pi" in title.text.lower() for title in titles]
     assert relevant.count(True) < len(relevant) * 0.8
     # category filtering
-    select = driver.select_element(driver.element('select[class*=search]'))
+    select = amazon_driver.select_element(amazon_driver.element('select[class*=search]'))
     select.select_by_visible_text('Electronics')
-    driver.element('input[name="field-keywords"]').send_keys(Keys.ENTER)
-    titles = driver.elements('.s-card-container span.a-text-normal')
+    amazon_driver.element('input[name="field-keywords"]').send_keys(Keys.ENTER)
+    titles = amazon_driver.elements('.s-card-container span.a-text-normal')
     relevant = ["raspberry pi" in title.text.lower() for title in titles]
     assert relevant.count(True) >= len(relevant) * 0.8
 
 
-def test_search_autocomplete_suggestions(driver):
-    search = driver.element('input[name="field-keywords"]')
+def test_search_autocomplete_suggestions(amazon_driver):
+    search = amazon_driver.element('input[name="field-keywords"]')
 
     for product in products:
         search.send_keys(product)
-        driver.wait_for.element_attribute_text_to_include('#issprefix', 'value', product)
-        suggestions = [i.get_attribute('aria-label') for i in driver.elements('.s-suggestion-ellipsis-direction')]
+        amazon_driver.wait_for.element_attribute_text_to_include('#issprefix', 'value', product)
+        suggestions = [i.get_attribute('aria-label') for i in amazon_driver.elements('.s-suggestion-ellipsis-direction')]
         assert all(suggestion.startswith(product) for suggestion in suggestions)
         search.clear()
 
 
-def test_search_filters(driver):
-    driver.element('input[name="field-keywords"]').send_keys('cpu', Keys.ENTER)
+def test_search_filters(amazon_driver):
+    amazon_driver.element('input[name="field-keywords"]').send_keys('cpu', Keys.ENTER)
     # price filtering
-    driver.elements('#priceRefinements ul li a')[1].click()
-    prices = driver.elements('.a-price-whole')
+    amazon_driver.elements('#priceRefinements ul li a')[1].click()
+    prices = amazon_driver.elements('.a-price-whole')
     for price in prices:
         assert 25 <= int(price.text) <= 50
     # customer reviews
-    driver.elements('#reviewsRefinements ul li a')[0].click()
-    reviews = [i.get_attribute('class') for i in driver.elements('.s-card-container i[class*=a-icon-star]')]
+    amazon_driver.elements('#reviewsRefinements ul li a')[0].click()
+    reviews = [i.get_attribute('class') for i in amazon_driver.elements('.s-card-container i[class*=a-icon-star]')]
     reviews = [''.join(filter(str.isdigit, s)) for s in reviews]
     for review in reviews:
         assert int(review) in [4, 45, 5]
 
 
-# Negative
 products = [('Sunglases', 'sunglasses'), ('Furnitue', 'furniture'), ('Aplle', 'apple')]
 
 
 @pytest.mark.parametrize('misspelled, spelled', products)
-def test_search_for_misspelled_product(driver, misspelled, spelled):
-    driver.element('input[name="field-keywords"]').send_keys(misspelled, Keys.ENTER)
-    titles = [i.text for i in driver.elements('.s-card-container span.a-text-normal')]
+def test_search_for_misspelled_product(amazon_driver, misspelled, spelled):
+    amazon_driver.element('input[name="field-keywords"]').send_keys(misspelled, Keys.ENTER)
+    titles = [i.text for i in amazon_driver.elements('.s-card-container span.a-text-normal')]
     assert "\n".join(titles).lower().count(spelled) > 10
 
 
-def test_search_out_of_stock_product(driver):
-    driver.element('input[name="field-keywords"]').send_keys('airtag', Keys.ENTER)
-    assert not driver.elements('[data-cel-widget="search_result_1"] .a-price-whole')
+def test_search_out_of_stock_product(amazon_driver):
+    amazon_driver.element('input[name="field-keywords"]').send_keys('airtag', Keys.ENTER)
+    assert not amazon_driver.elements('[data-cel-widget="search_result_1"] .a-price-whole')

@@ -6,14 +6,14 @@ from selench import Selench
 
 
 @pytest.fixture
-def ui_driver():
+def driver():
     driver = Selench(wait=5)
     yield driver
     driver.quit()
 
 
 @pytest.fixture
-def ui_page():
+def page():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
         context = browser.new_context()
